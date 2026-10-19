@@ -51,3 +51,40 @@ export async function gantiPassword(prevState, formData) {
 
   return { sukses: "Password berhasil diperbarui." };
 }
+
+export async function tambahProduk(prevState, formData) {
+  const supabase = await supabaseSession();
+
+  // Wajib: periksa sesi admin sebelum insert data (aturan keamanan no. 3)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/admin/login");
+  }
+
+  const nama = formData.get("nama")?.toString().trim();
+  const harga = Number(formData.get("harga"));
+  const kategori = formData.get("kategori")?.toString().trim() || null;
+  const foto_url = formData.get("foto_url")?.toString().trim() || null;
+  const deskripsi = formData.get("deskripsi")?.toString().trim() || null;
+
+  if (!nama) {
+    return { error: "Nama produk tidak boleh kosong." };
+  }
+  if (!harga || harga <= 0) {
+    return { error: "Harga produk harus lebih dari 0." };
+  }
+
+  const { error } = await supabase.from("produk").insert({
+    nama,
+    harga,
+    kategori,
+    foto_url,
+    deskripsi,
+  });
+
+  if (error) {
+    return { error: "Gagal menyimpan produk. Silakan coba lagi." };
+  }
+
+  redirect("/admin");
+}
