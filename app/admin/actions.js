@@ -126,3 +126,20 @@ export async function ubahProduk(prevState, formData) {
 
   redirect("/admin");
 }
+
+export async function hapusProduk(formData) {
+  const supabase = await supabaseSession();
+
+  // Wajib: periksa sesi admin sebelum menghapus data (aturan keamanan no. 3)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/admin/login");
+  }
+
+  const id = formData.get("id")?.toString();
+  if (!id) return;
+
+  await supabase.from("produk").delete().eq("id", id);
+
+  redirect("/admin");
+}
